@@ -132,7 +132,8 @@ export default class Term extends React.PureComponent<
       wholeWord: false,
       regex: false
     },
-    searchResults: undefined
+    searchResults: undefined,
+    webviewURL: ''
   };
 
   constructor(props: TermProps) {
@@ -216,7 +217,11 @@ export default class Term extends React.PureComponent<
       this.term.loadAddon(this.searchAddon);
       this.term.loadAddon(
         new WebLinksAddon((event, uri) => {
-          if (shallActivateWebLink(event)) void shell.openExternal(uri);
+          // if (shallActivateWebLink(event)) void shell.openExternal(uri);
+          this.setState((state) => ({
+            ...state,
+            webviewURL: uri
+          }));
         })
       );
       this.term.open(this.termRef);
@@ -513,44 +518,61 @@ export default class Term extends React.PureComponent<
   render() {
     return (
       <div className={`term_fit ${this.props.isTermActive ? 'term_active' : ''}`} onMouseUp={this.onMouseUp}>
-        {this.props.customChildrenBefore}
-        <div ref={this.onTermWrapperRef} className="term_fit term_wrapper" />
-        {this.props.customChildren}
-        {this.props.search ? (
-          <SearchBox
-            next={this.searchNext}
-            prev={this.searchPrevious}
-            close={this.closeSearchBox}
-            caseSensitive={this.state.searchOptions.caseSensitive}
-            wholeWord={this.state.searchOptions.wholeWord}
-            regex={this.state.searchOptions.regex}
-            results={this.state.searchResults}
-            toggleCaseSensitive={() =>
-              this.setState({
-                ...this.state,
-                searchOptions: {...this.state.searchOptions, caseSensitive: !this.state.searchOptions.caseSensitive}
-              })
-            }
-            toggleWholeWord={() =>
-              this.setState({
-                ...this.state,
-                searchOptions: {...this.state.searchOptions, wholeWord: !this.state.searchOptions.wholeWord}
-              })
-            }
-            toggleRegex={() =>
-              this.setState({
-                ...this.state,
-                searchOptions: {...this.state.searchOptions, regex: !this.state.searchOptions.regex}
-              })
-            }
-            selectionColor={this.props.selectionColor}
-            backgroundColor={this.props.backgroundColor}
-            foregroundColor={this.props.foregroundColor}
-            borderColor={this.props.borderColor}
-            font={this.props.uiFontFamily}
+        {this.state.webviewURL !== '' ? (
+          <iframe
+            src={this.state.webviewURL}
+            style={{
+              background: '#fff',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              display: 'block',
+              width: '100%',
+              height: '100%',
+              border: 'none'
+            }}
           />
-        ) : null}
-
+        ) : (
+          <>
+            {this.props.customChildrenBefore}
+            <div ref={this.onTermWrapperRef} className="term_fit term_wrapper" />
+            {this.props.customChildren}
+            {this.props.search ? (
+              <SearchBox
+                next={this.searchNext}
+                prev={this.searchPrevious}
+                close={this.closeSearchBox}
+                caseSensitive={this.state.searchOptions.caseSensitive}
+                wholeWord={this.state.searchOptions.wholeWord}
+                regex={this.state.searchOptions.regex}
+                results={this.state.searchResults}
+                toggleCaseSensitive={() =>
+                  this.setState({
+                    ...this.state,
+                    searchOptions: {...this.state.searchOptions, caseSensitive: !this.state.searchOptions.caseSensitive}
+                  })
+                }
+                toggleWholeWord={() =>
+                  this.setState({
+                    ...this.state,
+                    searchOptions: {...this.state.searchOptions, wholeWord: !this.state.searchOptions.wholeWord}
+                  })
+                }
+                toggleRegex={() =>
+                  this.setState({
+                    ...this.state,
+                    searchOptions: {...this.state.searchOptions, regex: !this.state.searchOptions.regex}
+                  })
+                }
+                selectionColor={this.props.selectionColor}
+                backgroundColor={this.props.backgroundColor}
+                foregroundColor={this.props.foregroundColor}
+                borderColor={this.props.borderColor}
+                font={this.props.uiFontFamily}
+              />
+            ) : null}
+          </>
+        )}
         <style jsx global>{`
           .term_fit {
             display: block;
